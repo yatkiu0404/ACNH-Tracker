@@ -1177,7 +1177,9 @@ const TRANSLATIONS = {
     fish: "Fish",
     seaCreatures: "Sea Creatures",
     monthLabels: ["J","F","M","A","M","J","J","A","S","O","N","D"],
-    monthNames: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+    monthNames: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    selectDate: "Select Date",
+selectTime: "Select Time"
   },
   "zh-TW": {
     appTitle: "生物圖鑑",
@@ -1221,7 +1223,9 @@ const TRANSLATIONS = {
     fish: "魚類",
     seaCreatures: "海洋生物",
     monthLabels: ["1","2","3","4","5","6","7","8","9","10","11","12"],
-    monthNames: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]
+    monthNames: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+    selectDate: "選擇日期",
+selectTime: "選擇時間"
   }
 };
 
@@ -1776,18 +1780,40 @@ function renderSettings(){
     </div>
   </div>`;
 
-  // Time mode
-  html+=`<div class="settings-section">
-    <div class="settings-label">${t("timeMode")}</div>
-    <div class="toggle-group">
-      <button class="toggle-opt${s.timeMode==="current"?" active":""}" onclick="setTimeMode('current')" type="button">${t("currentTime")}</button>
-      <button class="toggle-opt${s.timeMode==="specific"?" active":""}" onclick="setTimeMode('specific')" type="button">${t("specificTime")}</button>
+// Time mode
+html+=`<div class="settings-section">
+  <div class="settings-label">${t("timeMode")}</div>
+  <div class="toggle-group">
+    <button class="toggle-opt${s.timeMode==="current"?" active":""}" onclick="setTimeMode('current')" type="button">
+      ${t("currentTime")}
+    </button>
+    <button class="toggle-opt${s.timeMode==="specific"?" active":""}" onclick="setTimeMode('specific')" type="button">
+      ${t("specificTime")}
+    </button>
+  </div>
+
+  <div class="datetime-row${specHidden}" id="datetimeRow">
+    <div class="datetime-field">
+      <label for="settingsDate">${t("selectDate")}</label>
+      <input
+        type="date"
+        id="settingsDate"
+        value="${s.specificDate}"
+        onchange="setSpecificDate(this.value)"
+      >
     </div>
-    <div class="datetime-row${specHidden}" id="datetimeRow">
-      <input type="date" id="settingsDate" value="${s.specificDate}" onchange="setSpecificDate(this.value)">
-      <input type="time" id="settingsTime" value="${s.specificTime}" onchange="setSpecificTime(this.value)">
+
+    <div class="datetime-field">
+      <label for="settingsTime">${t("selectTime")}</label>
+      <input
+        type="time"
+        id="settingsTime"
+        value="${s.specificTime}"
+        onchange="setSpecificTime(this.value)"
+      >
     </div>
-  </div>`;
+  </div>
+</div>`;
 
   // Hemisphere
   html+=`<div class="settings-section">
