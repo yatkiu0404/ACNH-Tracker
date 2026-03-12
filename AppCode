@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Critter Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Lexend+Deca:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root {
+  --bg: #F2EBD9;
+  --surface: #FFFFFF;
+  --surface-alt: #F8F5ED;
+  --text: #3D2B1F;
+  --text-sec: #7A6B5E;
+  --border: #E0D5C1;
+  --primary: #5B8C3E;
+  --primary-light: #E8F0DE;
+  --bugs: #5B8C3E;
+  --bugs-light: #E8F0DE;
+  --bugs-dark: #3D6B22;
+  --fish: #3A7BD5;
+  --fish-light: #DFE9F8;
+  --fish-dark: #2558A0;
+  --sea: #8B5FBF;
+  --sea-light: #EDE4F6;
+  --sea-dark: #6A3FA0;
+  --accent: #D4941C;
+  --accent-light: #FDF1D4;
+  --danger: #D44B4B;
+  --nav-bg: #3D2B1F;
+  --nav-text: #A09080;
+  --nav-active: #7BC65D;
+  --shadow: 0 2px 12px rgba(61,43,31,0.08);
+  --radius: 14px;
+}
+.dark {
+  --bg: #1A2636;
+  --surface: #22334A;
+  --surface-alt: #2A3D57;
+  --text: #E8DFD0;
+  --text-sec: #A09888;
+  --border: #3A4F6A;
+  --primary: #7BC65D;
+  --primary-light: #2A3D2A;
+  --bugs: #7BC65D;
+  --bugs-light: #2A3D2A;
+  --bugs-dark: #5BA040;
+  --fish: #5BA0E8;
+  --fish-light: #1A2D45;
+  --fish-dark: #4080C0;
+  --sea: #A87FD4;
+  --sea-light: #2D2245;
+  --sea-dark: #8B60B8;
+  --accent: #F0B84A;
+  --accent-light: #3A3020;
+  --danger: #E06060;
+  --nav-bg: #0F1923;
+  --nav-text: #607080;
+  --nav-active: #7BC65D;
+  --shadow: 0 2px 12px rgba(0,0,0,0.25);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: 'Lexend Deca', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+}
+h1,h2,h3,h4 { font-family: 'Fredoka', sans-serif; }
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+}
+/* ===== HEADER ===== */
+.header {
+  padding: 14px 18px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg);
+  flex-shrink: 0;
+  z-index: 10;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-logo {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.header-logo span { font-size: 24px; }
+.header-time {
+  font-size: 13px;
+  color: var(--text-sec);
+  font-weight: 500;
+  text-align: right;
+}
+.header-time .time-value {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  font-weight: 600;
+}
+/* ===== MAIN CONTENT ===== */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 16px 16px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+/* ===== NAV BAR ===== */
+.nav {
+  display: flex;
+  background: var(--nav-bg);
+  flex-shrink: 0;
+  padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px 4px;
+  background: none;
+  border: none;
+  color: var(--nav-text);
+  font-family: 'Lexend Deca', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-btn i { font-size: 20px; transition: transform 0.2s; }
+.nav-btn.active { color: var(--nav-active); }
+.nav-btn.active i { transform: scale(1.15); }
+/* ===== DASHBOARD ===== */
+.section-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 18px 0 12px;
+  color: var(--text);
+}
+.overall-progress {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+.overall-label {
+  font-size: 13px;
+  color: var(--text-sec);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.overall-nums {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.overall-nums small { font-size: 16px; color: var(--text-sec); font-weight: 500; }
+.progress-bar {
+  height: 10px;
+  background: var(--surface-alt);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  background: var(--accent);
+}
+.cat-cards { display: flex; flex-direction: column; gap: 10px; }
+.cat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  cursor: default;
+}
+.cat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.cat-icon.bugs { background: var(--bugs-light); color: var(--bugs); }
+.cat-icon.fish { background: var(--fish-light); color: var(--fish); }
+.cat-icon.sea { background: var(--sea-light); color: var(--sea); }
+.cat-info { flex: 1; min-width: 0; }
+.cat-name { font-family: 'Fredoka', sans-serif; font-size: 15px; font-weight: 600; }
+.cat-count { font-size: 12px; color: var(--text-sec); margin: 2px 0 6px; }
+.cat-bar { height: 6px; background: var(--surface-alt); border-radius: 3px; overflow: hidden; }
+.cat-bar .fill-bugs { background: var(--bugs); }
+.cat-bar .fill-fish { background: var(--fish); }
+.cat-bar .fill-sea { background: var(--sea); }
+.cat-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+.cat-pct {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  min-width: 48px;
+  text-align: right;
+}
+/* ===== AVAILABLE NOW PREVIEW ===== */
+.avail-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.avail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+}
+.avail-item .avail-emoji { font-size: 18px; width: 26px; text-align: center; }
+.avail-item .avail-name { flex: 1; font-weight: 500; }
+.avail-item .avail-price { color: var(--accent); font-weight: 600; font-size: 12px; }
+.see-all-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: none;
+  border-radius: 10px;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: opacity 0.2s;
+}
+.see-all-btn:active { opacity: 0.7; }
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-sec);
+  font-size: 14px;
+}
+.empty-state i { font-size: 36px; margin-bottom: 12px; display: block; opacity: 0.4; }
+/* ===== CATEGORY BUTTONS ===== */
+.cat-buttons { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-btn:active { transform: scale(0.98); }
+.cat-btn.selected { border-color: var(--primary); }
+.cat-btn .cat-btn-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+}
+.cat-btn .cat-btn-icon.bugs { background: var(--bugs-light); color: var(--bugs); }
+.cat-btn .cat-btn-icon.fish { background: var(--fish-light); color: var(--fish); }
+.cat-btn .cat-btn-icon.sea { background: var(--sea-light); color: var(--sea); }
+.cat-btn-info { flex: 1; }
+.cat-btn-name { font-family: 'Fredoka', sans-serif; font-size: 18px; font-weight: 600; }
+.cat-btn-count { font-size: 13px; color: var(--text-sec); margin-top: 2px; }
+.cat-btn-arrow { color: var(--text-sec); font-size: 18px; }
+/* ===== BACK BAR ===== */
+.back-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 8px;
+}
+.back-btn {
+  background: var(--surface-alt);
+  border: none;
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.back-bar h3 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+}
+/* ===== SEARCH & FILTER ===== */
+.search-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.search-box {
+  flex: 1;
+  position: relative;
+}
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-sec);
+  font-size: 14px;
+}
+.search-box input {
+  width: 100%;
+  padding: 10px 12px 10px 36px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'Lexend Deca', sans-serif;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-box input::placeholder { color: var(--text-sec); }
+.search-box input:focus { border-color: var(--primary); }
+.filter-btn {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-sec);
+  font-family: 'Lexend Deca', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+/* ===== CREATURE LIST ===== */
+.creature-list { display: flex; flex-direction: column; gap: 6px; padding-bottom: 12px; }
+.creature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+  transition: opacity 0.3s;
+}
+.creature-item.caught-item { opacity: 0.55; }
+.creature-check {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  margin-top: 2px;
+  color: transparent;
+  font-size: 14px;
+}
+.creature-check.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.creature-check.checked i { animation: popIn 0.25s ease; }
+@keyframes popIn { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+.creature-body { flex: 1; min-width: 0; }
+.creature-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.creature-details { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 11px; color: var(--text-sec); }
+.creature-details span { display: flex; align-items: center; gap: 4px; }
+.creature-details .fa-coins { color: var(--accent); }
+.creature-details .fa-clock { color: var(--fish); }
+.creature-details .fa-location-dot { color: var(--danger); }
+/* ===== MONTH DOTS ===== */
+.month-dots { display: flex; gap: 3px; margin-top: 6px; }
+.month-dot {
+  width: 20px;
+  height: 18px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-alt);
+  color: var(--text-sec);
+}
+.month-dot.active { background: var(--primary-light); color: var(--primary); }
+.month-dot.current { outline: 2px solid var(--accent); outline-offset: -1px; }
+/* ===== SETTINGS ===== */
+.settings-section {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-top: 14px;
+  box-shadow: var(--shadow);
+}
+.settings-label {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.toggle-group {
+  display: flex;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.toggle-opt {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: var(--surface-alt);
+  color: var(--text-sec);
+  font-family: 'Lexend Deca', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.toggle-opt.active { background: var(--primary); color: #fff; }
+.datetime-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+.datetime-row input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt);
+  color: var(--text);
+  font-family: 'Lexend Deca', sans-serif;
+  font-size: 16px;
+  outline: none;
+}
+.datetime-row input:focus { border-color: var(--primary); }
+.hidden { display: none !important; }
+.creature-count-badge {
+  font-size: 12px;
+  background: var(--surface-alt);
+  color: var(--text-sec);
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+.dash-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 0;
+}
+/* ===== DATA ACTIONS ===== */
+.data-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+.data-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt);
+  color: var(--text);
+  font-family: 'Lexend Deca', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.data-btn:active { opacity: 0.7; }
+.data-btn.danger { color: var(--danger); border-color: var(--danger); }
+/* ===== SAVE TOAST ===== */
+.save-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--primary);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.save-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+/* ===== DASH FILTER CHIPS ===== */
+.dash-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.dash-chip {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text-sec);
+  font-family: 'Lexend Deca', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.dash-chip:active { transform: scale(0.96); }
+.dash-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.dash-chip .chip-count {
+  font-weight: 600;
+  margin-left: 4px;
+  opacity: 0.8;
+}
+/* ===== CUSTOM MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.15s ease;
+}
+.modal-box {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.modal-box p { font-size: 14px; color: var(--text); margin-bottom: 18px; line-height: 1.5; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+.modal-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Lexend Deca', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.modal-btn:active { opacity: 0.7; }
+.modal-btn.cancel { background: var(--surface-alt); color: var(--text-sec); }
+.modal-btn.confirm { background: var(--danger); color: #fff; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo"><span>🍃</span><span id="appTitle">Critter Tracker</span></div>
+    </div>
+    <div class="header-time">
+      <div id="timeLabel">Current Time</div>
+      <div class="time-value" id="timeValue">--:--</div>
+    </div>
+  </div>
+
+  <div class="main" id="mainContent">
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panelDashboard"></div>
+    <!-- AVAILABLE NOW -->
+    <div class="panel" id="panelAvailable"></div>
+    <!-- COLLECTION -->
+    <div class="panel" id="panelCollection"></div>
+    <!-- SETTINGS -->
+    <div class="panel" id="panelSettings"></div>
+  </div>
+
+  <div class="save-toast" id="saveToast"></div>
+  <nav class="nav" id="navBar">
+    <button class="nav-btn active" data-tab="dashboard" type="button">
+      <i class="fa-solid fa-chart-pie"></i><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn" data-tab="available" type="button">
+      <i class="fa-solid fa-clock"></i><span class="nav-label">Now</span>
+    </button>
+    <button class="nav-btn" data-tab="collection" type="button">
+      <i class="fa-solid fa-book"></i><span class="nav-label">All</span>
+    </button>
+    <button class="nav-btn" data-tab="settings" type="button">
+      <i class="fa-solid fa-gear"></i><span class="nav-label">Settings</span>
+    </button>
+  </nav>
+</div>
+<script>
+/* ================================================================
+   CREATURE DATA - Animal Crossing: New Horizons
+   Format: { n: name, m: months(NH), h: hours, l: location, p: price }
+   ================================================================ */
+const BUGS=[
+{n:"Common Butterfly",m:"1-6,9-12",h:"4-19",l:"Flying",p:160},
+{n:"Yellow Butterfly",m:"3-6,9-10",h:"4-19",l:"Flying",p:160},
+{n:"Tiger Butterfly",m:"3-9",h:"4-19",l:"Flying",p:240},
+{n:"Peacock Butterfly",m:"3-6",h:"4-19",l:"Flying (flowers)",p:2500},
+{n:"Common Bluebottle",m:"4-8",h:"4-19",l:"Flying",p:300},
+{n:"Paper Kite Butterfly",m:"1-12",h:"8-19",l:"Flying",p:1000},
+{n:"Great Purple Emperor",m:"5-8",h:"4-19",l:"Flying",p:3000},
+{n:"Monarch Butterfly",m:"9-11",h:"4-17",l:"Flying",p:140},
+{n:"Emperor Butterfly",m:"6-9",h:"17-8",l:"Flying",p:4000},
+{n:"Agrias Butterfly",m:"4-9",h:"8-17",l:"Flying",p:3000},
+{n:"Rajah Brooke's Birdwing",m:"4-9",h:"8-17",l:"Flying",p:2500},
+{n:"Queen Alexandra's Birdwing",m:"5-9",h:"8-16",l:"Flying",p:4000},
+{n:"Moth",m:"1-12",h:"19-4",l:"Near lights",p:130},
+{n:"Atlas Moth",m:"4-9",h:"19-4",l:"On trees",p:3000},
+{n:"Madagascan Sunset Moth",m:"4-9",h:"8-16",l:"Flying",p:2500},
+{n:"Long Locust",m:"4-11",h:"8-19",l:"On ground",p:200},
+{n:"Migratory Locust",m:"8-11",h:"8-19",l:"On ground",p:600},
+{n:"Rice Grasshopper",m:"8-11",h:"8-19",l:"On ground",p:160},
+{n:"Grasshopper",m:"7-9",h:"8-17",l:"On ground",p:160},
+{n:"Cricket",m:"9-11",h:"17-8",l:"On ground",p:130},
+{n:"Bell Cricket",m:"9-10",h:"17-8",l:"On ground",p:430},
+{n:"Mantis",m:"3-11",h:"8-17",l:"On flowers",p:430},
+{n:"Orchid Mantis",m:"3-11",h:"8-17",l:"On flowers (white)",p:2400},
+{n:"Honeybee",m:"3-7",h:"8-17",l:"Flying near flowers",p:200},
+{n:"Wasp",m:"1-12",h:"0-24",l:"Shaking trees",p:2500},
+{n:"Brown Cicada",m:"7-8",h:"8-17",l:"On trees",p:250},
+{n:"Robust Cicada",m:"7-8",h:"8-17",l:"On trees",p:300},
+{n:"Giant Cicada",m:"7-8",h:"8-17",l:"On trees",p:500},
+{n:"Walker Cicada",m:"8-9",h:"8-17",l:"On trees",p:400},
+{n:"Evening Cicada",m:"7-8",h:"4-8,16-19",l:"On trees",p:550},
+{n:"Cicada Shell",m:"7-8",h:"0-24",l:"On trees",p:10},
+{n:"Red Dragonfly",m:"9-10",h:"8-19",l:"Flying",p:180},
+{n:"Darner Dragonfly",m:"4-10",h:"8-17",l:"Flying",p:230},
+{n:"Banded Dragonfly",m:"5-10",h:"8-17",l:"Flying",p:4500},
+{n:"Damselfly",m:"11-2",h:"0-24",l:"Flying",p:500},
+{n:"Firefly",m:"6-6",h:"19-4",l:"Near water",p:300},
+{n:"Mole Cricket",m:"11-5",h:"0-24",l:"Underground",p:500},
+{n:"Pondskater",m:"5-9",h:"8-19",l:"On ponds",p:130},
+{n:"Diving Beetle",m:"5-9",h:"8-19",l:"In rivers",p:800},
+{n:"Giant Water Bug",m:"4-9",h:"19-8",l:"On ponds",p:2000},
+{n:"Stinkbug",m:"3-10",h:"0-24",l:"On flowers",p:120},
+{n:"Man-faced Stink Bug",m:"3-10",h:"19-8",l:"On flowers",p:1000},
+{n:"Ladybug",m:"3-6,10-10",h:"8-17",l:"On flowers",p:200},
+{n:"Tiger Beetle",m:"2-10",h:"0-24",l:"On ground",p:1500},
+{n:"Jewel Beetle",m:"4-8",h:"0-24",l:"On stumps",p:2400},
+{n:"Citrus Long-horned Beetle",m:"1-12",h:"0-24",l:"On stumps",p:350},
+{n:"Rosalia Batesi Beetle",m:"5-9",h:"0-24",l:"On stumps",p:3000},
+{n:"Blue Weevil Beetle",m:"7-8",h:"0-24",l:"On palm trees",p:800},
+{n:"Violin Beetle",m:"5-6,9-11",h:"0-24",l:"On stumps",p:450},
+{n:"Drone Beetle",m:"6-8",h:"0-24",l:"On trees",p:200},
+{n:"Dung Beetle",m:"12-2",h:"0-24",l:"On snowballs",p:3000},
+{n:"Earth-boring Dung Beetle",m:"7-9",h:"0-24",l:"On ground",p:300},
+{n:"Scarab Beetle",m:"7-8",h:"23-8",l:"On trees",p:10000},
+{n:"Miyama Stag",m:"7-8",h:"0-24",l:"On trees",p:1000},
+{n:"Saw Stag",m:"7-8",h:"0-24",l:"On trees",p:2000},
+{n:"Giant Stag",m:"7-8",h:"23-8",l:"On trees",p:10000},
+{n:"Rainbow Stag",m:"6-9",h:"19-8",l:"On trees",p:6000},
+{n:"Cyclommatus Stag",m:"7-8",h:"17-8",l:"On palm trees",p:8000},
+{n:"Golden Stag",m:"7-8",h:"17-8",l:"On palm trees",p:12000},
+{n:"Giraffe Stag",m:"7-8",h:"17-8",l:"On trees",p:12000},
+{n:"Horned Dynastid",m:"7-8",h:"17-8",l:"On trees",p:1350},
+{n:"Horned Atlas",m:"7-8",h:"17-8",l:"On palm trees",p:8000},
+{n:"Horned Elephant",m:"7-8",h:"17-8",l:"On palm trees",p:8000},
+{n:"Horned Hercules",m:"7-8",h:"17-8",l:"On palm trees",p:12000},
+{n:"Walking Stick",m:"7-11",h:"4-8,17-19",l:"On trees",p:600},
+{n:"Walking Leaf",m:"7-9",h:"0-24",l:"Under trees",p:600},
+{n:"Bagworm",m:"1-12",h:"0-24",l:"Shaking trees",p:600},
+{n:"Ant",m:"1-12",h:"0-24",l:"On rotten food",p:80},
+{n:"Hermit Crab",m:"1-12",h:"19-8",l:"Beach",p:1000},
+{n:"Wharf Roach",m:"1-12",h:"0-24",l:"Beach rocks",p:200},
+{n:"Fly",m:"1-12",h:"0-24",l:"On trash",p:60},
+{n:"Mosquito",m:"6-9",h:"17-4",l:"Flying",p:130},
+{n:"Flea",m:"4-11",h:"0-24",l:"On villagers",p:70},
+{n:"Snail",m:"1-12",h:"0-24",l:"On rocks (rain)",p:250},
+{n:"Pill Bug",m:"9-6",h:"23-16",l:"Under rocks",p:250},
+{n:"Centipede",m:"9-6",h:"16-23",l:"Under rocks",p:300},
+{n:"Spider",m:"1-12",h:"19-8",l:"Shaking trees",p:600},
+{n:"Tarantula",m:"11-4",h:"19-4",l:"On ground",p:8000},
+{n:"Scorpion",m:"5-10",h:"19-4",l:"On ground",p:8000},
+{n:"Atlas Beetle",m:"7-8",h:"17-8",l:"On palm trees",p:8000}
+];
+
+const FISH=[
+{n:"Bitterling",m:"11-3",h:"0-24",l:"River",p:900},
+{n:"Pale Chub",m:"1-12",h:"9-16",l:"River",p:200},
+{n:"Crucian Carp",m:"1-12",h:"0-24",l:"River",p:160},
+{n:"Dace",m:"1-12",h:"16-9",l:"River",p:240},
+{n:"Carp",m:"1-12",h:"0-24",l:"Pond",p:300},
+{n:"Koi",m:"1-12",h:"16-9",l:"Pond",p:4000},
+{n:"Goldfish",m:"1-12",h:"0-24",l:"Pond",p:1300},
+{n:"Pop-eyed Goldfish",m:"1-12",h:"9-16",l:"Pond",p:1300},
+{n:"Ranchu Goldfish",m:"1-12",h:"9-16",l:"Pond",p:4500},
+{n:"Killifish",m:"4-8",h:"0-24",l:"Pond",p:300},
+{n:"Crawfish",m:"4-9",h:"0-24",l:"Pond",p:200},
+{n:"Soft-shelled Turtle",m:"8-9",h:"16-9",l:"River",p:3750},
+{n:"Snapping Turtle",m:"4-10",h:"21-4",l:"River",p:5000},
+{n:"Tadpole",m:"3-7",h:"0-24",l:"Pond",p:100},
+{n:"Frog",m:"5-8",h:"0-24",l:"Pond",p:120},
+{n:"Freshwater Goby",m:"1-12",h:"16-9",l:"River",p:400},
+{n:"Loach",m:"3-5",h:"0-24",l:"River",p:400},
+{n:"Catfish",m:"5-10",h:"16-9",l:"Pond",p:800},
+{n:"Giant Snakehead",m:"6-8",h:"9-16",l:"Pond",p:5500},
+{n:"Bluegill",m:"1-12",h:"9-16",l:"River",p:180},
+{n:"Yellow Perch",m:"10-3",h:"0-24",l:"River",p:300},
+{n:"Black Bass",m:"1-12",h:"0-24",l:"River",p:400},
+{n:"Tilapia",m:"6-10",h:"0-24",l:"River",p:800},
+{n:"Pike",m:"9-12",h:"0-24",l:"River",p:1800},
+{n:"Pond Smelt",m:"10-2",h:"0-24",l:"River",p:500},
+{n:"Sweetfish",m:"7-9",h:"0-24",l:"River",p:900},
+{n:"Cherry Salmon",m:"3-6,9-11",h:"16-9",l:"River (clifftop)",p:1000},
+{n:"Char",m:"3-6,9-11",h:"16-9",l:"River (clifftop)",p:3800},
+{n:"Golden Trout",m:"3-5,9-11",h:"16-9",l:"River (clifftop)",p:15000},
+{n:"Stringfish",m:"12-3",h:"16-9",l:"River (clifftop)",p:15000},
+{n:"Salmon",m:"9-9",h:"0-24",l:"River mouth",p:700},
+{n:"King Salmon",m:"9-9",h:"0-24",l:"River mouth",p:1800},
+{n:"Mitten Crab",m:"9-11",h:"16-9",l:"River",p:2000},
+{n:"Guppy",m:"4-11",h:"9-16",l:"River",p:1300},
+{n:"Nibble Fish",m:"5-9",h:"9-16",l:"River",p:1500},
+{n:"Angelfish",m:"5-10",h:"16-9",l:"River",p:3000},
+{n:"Betta",m:"5-10",h:"9-16",l:"River",p:2500},
+{n:"Neon Tetra",m:"4-11",h:"9-16",l:"River",p:500},
+{n:"Rainbowfish",m:"5-10",h:"9-16",l:"River",p:800},
+{n:"Piranha",m:"6-9",h:"9-16,21-4",l:"River",p:2500},
+{n:"Arowana",m:"6-9",h:"16-9",l:"River",p:10000},
+{n:"Dorado",m:"6-9",h:"4-21",l:"River",p:15000},
+{n:"Gar",m:"6-9",h:"16-9",l:"Pond",p:6000},
+{n:"Arapaima",m:"6-9",h:"16-9",l:"River",p:10000},
+{n:"Saddled Bichir",m:"6-9",h:"21-4",l:"River",p:4000},
+{n:"Sturgeon",m:"9-3",h:"0-24",l:"River mouth",p:10000},
+{n:"Sea Butterfly",m:"12-3",h:"0-24",l:"Sea",p:1000},
+{n:"Sea Horse",m:"4-11",h:"0-24",l:"Sea",p:1100},
+{n:"Clownfish",m:"4-9",h:"0-24",l:"Sea",p:650},
+{n:"Surgeonfish",m:"4-9",h:"0-24",l:"Sea",p:1000},
+{n:"Butterfly Fish",m:"4-9",h:"0-24",l:"Sea",p:1000},
+{n:"Napoleonfish",m:"7-8",h:"4-21",l:"Sea",p:10000},
+{n:"Zebra Turkeyfish",m:"4-11",h:"0-24",l:"Sea",p:500},
+{n:"Blowfish",m:"11-2",h:"21-4",l:"Sea",p:5000},
+{n:"Puffer Fish",m:"7-9",h:"0-24",l:"Sea",p:250},
+{n:"Anchovy",m:"1-12",h:"4-21",l:"Sea",p:200},
+{n:"Horse Mackerel",m:"1-12",h:"0-24",l:"Sea",p:150},
+{n:"Barred Knifejaw",m:"3-11",h:"0-24",l:"Sea",p:5000},
+{n:"Sea Bass",m:"1-12",h:"0-24",l:"Sea",p:400},
+{n:"Red Snapper",m:"1-12",h:"0-24",l:"Sea",p:3000},
+{n:"Dab",m:"10-4",h:"0-24",l:"Sea",p:300},
+{n:"Olive Flounder",m:"1-12",h:"0-24",l:"Sea",p:800},
+{n:"Squid",m:"12-8",h:"0-24",l:"Sea",p:500},
+{n:"Moray Eel",m:"8-10",h:"0-24",l:"Sea",p:2000},
+{n:"Ribbon Eel",m:"6-10",h:"0-24",l:"Sea",p:600},
+{n:"Tuna",m:"11-4",h:"0-24",l:"Pier",p:7000},
+{n:"Blue Marlin",m:"11-4,7-9",h:"0-24",l:"Pier",p:10000},
+{n:"Giant Trevally",m:"5-10",h:"0-24",l:"Pier",p:4500},
+{n:"Mahi-Mahi",m:"5-10",h:"0-24",l:"Pier",p:6000},
+{n:"Ocean Sunfish",m:"7-9",h:"4-21",l:"Sea",p:4000},
+{n:"Ray",m:"8-11",h:"4-21",l:"Sea",p:3000},
+{n:"Saw Shark",m:"6-9",h:"16-9",l:"Sea",p:12000},
+{n:"Hammerhead Shark",m:"6-9",h:"16-9",l:"Sea",p:8000},
+{n:"Great White Shark",m:"6-9",h:"16-9",l:"Sea",p:15000},
+{n:"Whale Shark",m:"6-9",h:"0-24",l:"Sea",p:13000},
+{n:"Suckerfish",m:"6-9",h:"0-24",l:"Sea",p:1500},
+{n:"Football Fish",m:"11-3",h:"16-9",l:"Sea",p:2500},
+{n:"Oarfish",m:"12-5",h:"0-24",l:"Sea",p:9000},
+{n:"Barreleye",m:"1-12",h:"21-4",l:"Sea",p:15000},
+{n:"Coelacanth",m:"1-12",h:"0-24",l:"Sea (rain)",p:15000}
+];
+
+const SEA=[
+{n:"Seaweed",m:"10-7",h:"0-24",l:"Diving",p:600},
+{n:"Sea Grapes",m:"6-9",h:"0-24",l:"Diving",p:900},
+{n:"Sea Cucumber",m:"11-4",h:"0-24",l:"Diving",p:500},
+{n:"Sea Pig",m:"11-2",h:"16-9",l:"Diving",p:10000},
+{n:"Sea Star",m:"1-12",h:"0-24",l:"Diving",p:500},
+{n:"Sea Urchin",m:"5-9",h:"0-24",l:"Diving",p:1700},
+{n:"Slate Pencil Urchin",m:"5-9",h:"16-9",l:"Diving",p:2000},
+{n:"Sea Anemone",m:"1-12",h:"0-24",l:"Diving",p:500},
+{n:"Moon Jellyfish",m:"7-9",h:"0-24",l:"Diving",p:600},
+{n:"Sea Slug",m:"1-12",h:"0-24",l:"Diving",p:600},
+{n:"Pearl Oyster",m:"1-12",h:"0-24",l:"Diving",p:2800},
+{n:"Mussel",m:"6-12",h:"0-24",l:"Diving",p:1500},
+{n:"Oyster",m:"9-2",h:"0-24",l:"Diving",p:1100},
+{n:"Scallop",m:"1-12",h:"0-24",l:"Diving",p:1200},
+{n:"Turban Shell",m:"3-5,9-12",h:"0-24",l:"Diving",p:1000},
+{n:"Abalone",m:"6-1",h:"16-9",l:"Diving",p:2000},
+{n:"Gigas Giant Clam",m:"5-9",h:"0-24",l:"Diving",p:15000},
+{n:"Chambered Nautilus",m:"3-6,9-11",h:"16-9",l:"Diving",p:1800},
+{n:"Octopus",m:"1-12",h:"0-24",l:"Diving",p:1200},
+{n:"Umbrella Octopus",m:"3-5,9-11",h:"0-24",l:"Diving",p:6000},
+{n:"Vampire Squid",m:"5-8",h:"16-9",l:"Diving",p:10000},
+{n:"Firefly Squid",m:"3-6",h:"21-4",l:"Diving",p:1400},
+{n:"Gazami Crab",m:"6-11",h:"0-24",l:"Diving",p:2200},
+{n:"Dungeness Crab",m:"11-5",h:"0-24",l:"Diving",p:1900},
+{n:"Snow Crab",m:"11-4",h:"0-24",l:"Diving",p:6000},
+{n:"Red King Crab",m:"11-3",h:"0-24",l:"Diving",p:8000},
+{n:"Acorn Barnacle",m:"1-12",h:"0-24",l:"Diving",p:600},
+{n:"Spider Crab",m:"3-4",h:"0-24",l:"Diving",p:12000},
+{n:"Tiger Prawn",m:"6-9",h:"16-9",l:"Diving",p:3000},
+{n:"Sweet Shrimp",m:"9-2",h:"16-9",l:"Diving",p:1400},
+{n:"Mantis Shrimp",m:"1-12",h:"0-24",l:"Diving",p:2500},
+{n:"Spiny Lobster",m:"10-12",h:"21-4",l:"Diving",p:5000},
+{n:"Lobster",m:"4-6,12-1",h:"0-24",l:"Diving",p:4500},
+{n:"Giant Isopod",m:"7-10",h:"21-4",l:"Diving",p:12000},
+{n:"Horseshoe Crab",m:"7-9",h:"21-4",l:"Diving",p:2500},
+{n:"Sea Pineapple",m:"4-8",h:"0-24",l:"Diving",p:1500},
+{n:"Spotted Garden Eel",m:"5-10",h:"4-21",l:"Diving",p:1100},
+{n:"Flatworm",m:"8-9",h:"16-9",l:"Diving",p:700},
+{n:"Venus' Flower Basket",m:"10-2",h:"0-24",l:"Diving",p:5000},
+{n:"Horsehair Crab",m:"3-4",h:"0-24",l:"Diving",p:4000}
+];
+
+/* Traditional Chinese creature name translations */
+const NAMES_TC = {
+  // Bugs
+  "Common Butterfly":"白粉蝶","Yellow Butterfly":"紋白蝶","Tiger Butterfly":"鳳蝶",
+  "Peacock Butterfly":"大琉璃鳳蝶","Common Bluebottle":"青帶鳳蝶","Paper Kite Butterfly":"大白斑蝶",
+  "Great Purple Emperor":"大紫蛺蝶","Monarch Butterfly":"大樺斑蝶","Emperor Butterfly":"大藍閃蝶",
+  "Agrias Butterfly":"紅蝶","Rajah Brooke's Birdwing":"紅頸鳥翼蝶","Queen Alexandra's Birdwing":"亞歷山大鳥翼蝶",
+  "Moth":"蛾","Atlas Moth":"皇蛾","Madagascan Sunset Moth":"日落蛾",
+  "Long Locust":"稻蝗","Migratory Locust":"飛蝗","Rice Grasshopper":"蝗蟲",
+  "Grasshopper":"蚱蜢","Cricket":"蟋蟀","Bell Cricket":"鈴蟲",
+  "Mantis":"螳螂","Orchid Mantis":"蘭花螳螂","Honeybee":"蜜蜂",
+  "Wasp":"黃蜂","Brown Cicada":"油蟬","Robust Cicada":"暮蟬",
+  "Giant Cicada":"大蟬","Walker Cicada":"寒蟬","Evening Cicada":"蜩蟬",
+  "Cicada Shell":"蟬殼","Red Dragonfly":"紅蜻蜓","Darner Dragonfly":"鬼蜻蜓",
+  "Banded Dragonfly":"無霸勾蜓","Damselfly":"豆娘","Firefly":"螢火蟲",
+  "Mole Cricket":"螻蛄","Pondskater":"水黽","Diving Beetle":"龍蝨",
+  "Giant Water Bug":"田鱉","Stinkbug":"臭蟲","Man-faced Stink Bug":"人面椿象",
+  "Ladybug":"瓢蟲","Tiger Beetle":"虎甲蟲","Jewel Beetle":"吉丁蟲",
+  "Citrus Long-horned Beetle":"星天牛","Rosalia Batesi Beetle":"薔薇天牛",
+  "Blue Weevil Beetle":"藍象鼻蟲","Violin Beetle":"提琴蟲","Drone Beetle":"金龜子",
+  "Dung Beetle":"糞金龜","Earth-boring Dung Beetle":"推糞蟲","Scarab Beetle":"聖甲蟲",
+  "Miyama Stag":"深山鍬形蟲","Saw Stag":"鋸鍬形蟲","Giant Stag":"大鍬形蟲",
+  "Rainbow Stag":"彩虹鍬形蟲","Cyclommatus Stag":"細身赤鍬形蟲","Golden Stag":"黃金鬼鍬形蟲",
+  "Giraffe Stag":"長頸鹿鍬形蟲","Horned Dynastid":"獨角仙","Horned Atlas":"南洋大兜蟲",
+  "Horned Elephant":"長戟大兜蟲","Horned Hercules":"赫克力士大兜蟲",
+  "Walking Stick":"竹節蟲","Walking Leaf":"葉竹節蟲","Bagworm":"蓑衣蟲",
+  "Ant":"螞蟻","Hermit Crab":"寄居蟹","Wharf Roach":"海蟑螂",
+  "Fly":"蒼蠅","Mosquito":"蚊子","Flea":"跳蚤",
+  "Snail":"蝸牛","Pill Bug":"鼠婦","Centipede":"蜈蚣",
+  "Spider":"蜘蛛","Tarantula":"狼蛛","Scorpion":"蠍子","Atlas Beetle":"亞特拉斯南大兜蟲",
+  // Fish
+  "Bitterling":"紅目鯽","Pale Chub":"溪哥","Crucian Carp":"鯽魚",
+  "Dace":"溪魚","Carp":"鯉魚","Koi":"錦鯉",
+  "Goldfish":"金魚","Pop-eyed Goldfish":"龍睛金魚","Ranchu Goldfish":"蘭壽金魚",
+  "Killifish":"鱂魚","Crawfish":"螯蝦","Soft-shelled Turtle":"鱉",
+  "Snapping Turtle":"鱷龜","Tadpole":"蝌蚪","Frog":"青蛙",
+  "Freshwater Goby":"鰕虎魚","Loach":"泥鰍","Catfish":"鯰魚",
+  "Giant Snakehead":"雷魚","Bluegill":"藍鰓太陽魚","Yellow Perch":"河鱸",
+  "Black Bass":"黑鱸魚","Tilapia":"吳郭魚","Pike":"狗魚",
+  "Pond Smelt":"池沼公魚","Sweetfish":"香魚","Cherry Salmon":"櫻鱒",
+  "Char":"紅點鮭","Golden Trout":"金鱒","Stringfish":"遠東哲羅魚",
+  "Salmon":"鮭魚","King Salmon":"帝王鮭","Mitten Crab":"大閘蟹",
+  "Guppy":"孔雀魚","Nibble Fish":"醫生魚","Angelfish":"神仙魚",
+  "Betta":"鬥魚","Neon Tetra":"霓虹脂鯉","Rainbowfish":"彩虹魚",
+  "Piranha":"食人魚","Arowana":"金龍魚","Dorado":"黃金河虎",
+  "Gar":"雀鱔","Arapaima":"巨骨舌魚","Saddled Bichir":"恐龍魚",
+  "Sturgeon":"鱘魚","Sea Butterfly":"海蝴蝶","Sea Horse":"海馬",
+  "Clownfish":"小丑魚","Surgeonfish":"刺尾魚","Butterfly Fish":"蝴蝶魚",
+  "Napoleonfish":"拿破崙魚","Zebra Turkeyfish":"獅子魚","Blowfish":"河豚",
+  "Puffer Fish":"刺河魨","Anchovy":"鯷魚","Horse Mackerel":"竹莢魚",
+  "Barred Knifejaw":"石鯛","Sea Bass":"鱸魚","Red Snapper":"紅鯛",
+  "Dab":"比目魚","Olive Flounder":"牙鮃","Squid":"魷魚",
+  "Moray Eel":"海鰻","Ribbon Eel":"蝴蝶鰻","Tuna":"鮪魚",
+  "Blue Marlin":"旗魚","Giant Trevally":"浪人鰺","Mahi-Mahi":"鬼頭刀",
+  "Ocean Sunfish":"翻車魚","Ray":"魟魚","Saw Shark":"鋸鯊",
+  "Hammerhead Shark":"雙髻鯊","Great White Shark":"大白鯊","Whale Shark":"鯨鯊",
+  "Suckerfish":"鮣魚","Football Fish":"足球魚","Oarfish":"皇帶魚",
+  "Barreleye":"桶眼魚","Coelacanth":"腔棘魚",
+  // Sea Creatures
+  "Seaweed":"海藻","Sea Grapes":"海葡萄","Sea Cucumber":"海參",
+  "Sea Pig":"海豬","Sea Star":"海星","Sea Urchin":"海膽",
+  "Slate Pencil Urchin":"石筆海膽","Sea Anemone":"海葵","Moon Jellyfish":"水母",
+  "Sea Slug":"海蛞蝓","Pearl Oyster":"珍珠蚌","Mussel":"淡菜",
+  "Oyster":"牡蠣","Scallop":"扇貝","Turban Shell":"蠑螺",
+  "Abalone":"鮑魚","Gigas Giant Clam":"硨磲貝","Chambered Nautilus":"鸚鵡螺",
+  "Octopus":"章魚","Umbrella Octopus":"面蛸","Vampire Squid":"吸血烏賊",
+  "Firefly Squid":"螢火魷","Gazami Crab":"梭子蟹","Dungeness Crab":"珍寶蟹",
+  "Snow Crab":"松葉蟹","Red King Crab":"帝王蟹","Acorn Barnacle":"藤壺",
+  "Spider Crab":"甘氏巨螯蟹","Tiger Prawn":"斑節蝦","Sweet Shrimp":"甜蝦",
+  "Mantis Shrimp":"蝦蛄","Spiny Lobster":"龍蝦","Lobster":"波士頓龍蝦",
+  "Giant Isopod":"大王具足蟲","Horseshoe Crab":"鱟","Sea Pineapple":"海鞘",
+  "Spotted Garden Eel":"花園鰻","Flatworm":"扁蟲","Venus' Flower Basket":"偕老同穴",
+  "Horsehair Crab":"毛蟹"
+};
+
+function cn(c) {
+  const lang = state.settings.language || "en";
+  if (lang === "zh-TW" && NAMES_TC[c.n]) return NAMES_TC[c.n];
+  return c.n;
+}
+
+const MONTH_LABELS=["J","F","M","A","M","J","J","A","S","O","N","D"];
+const MONTH_NAMES=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const CAT_EMOJI={bugs:"🦗",fish:"🐟",sea:"🐙"};
+const CAT_NAMES={bugs:"Bugs",fish:"Fish",sea:"Sea Creatures"};
+const CAT_DATA={bugs:BUGS,fish:FISH,sea:SEA};
+
+/* ================================================================
+   TRANSLATIONS
+   ================================================================ */
+const TRANSLATIONS = {
+  en: {
+    appTitle: "Critter Tracker",
+    currentTime: "Current Time",
+    customTime: "Custom Time",
+    navHome: "Home",
+    navNow: "Now",
+    navAll: "All",
+    navSettings: "Settings",
+    overallProgress: "Overall Progress",
+    caught: "caught",
+    availNowUncaught: "🕐 Available Now & Uncaught",
+    allCaughtMsg: "All currently available critters are caught! 🎉",
+    seeAllAvail: "See all {0} available →",
+    viewAvailTab: "View in Available Now tab →",
+    availRightNow: "Available Right Now",
+    available: "available",
+    uncaught: "uncaught",
+    availableNow: "Available Now",
+    fullCollection: "Full Collection",
+    searchPlaceholder: "Search...",
+    filterAll: "All",
+    noCreaturesFound: "No creatures found",
+    settingsTitle: "⚙️ Settings",
+    timeMode: "Time Mode",
+    specificTime: "Specific Time",
+    hemisphere: "Hemisphere",
+    northern: "🌍 Northern",
+    southern: "🌏 Southern",
+    dataManagement: "Data Management",
+    exportBtn: "Export",
+    importBtn: "Import",
+    resetAll: "Reset All",
+    resetConfirmMsg: "Are you sure you want to reset all caught data? This cannot be undone.",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    importFailedMsg: "Failed to import data. Please check the file format.",
+    allDay: "All Day",
+    language: "Language",
+    bugs: "Bugs",
+    fish: "Fish",
+    seaCreatures: "Sea Creatures",
+    monthLabels: ["J","F","M","A","M","J","J","A","S","O","N","D"],
+    monthNames: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+  },
+  "zh-TW": {
+    appTitle: "生物圖鑑",
+    currentTime: "目前時間",
+    customTime: "自訂時間",
+    navHome: "首頁",
+    navNow: "當前",
+    navAll: "全部",
+    navSettings: "設定",
+    overallProgress: "總體進度",
+    caught: "已捕獲",
+    availNowUncaught: "🕐 目前可捕獲且未擁有",
+    allCaughtMsg: "所有目前可捕獲的生物都已收集！🎉",
+    seeAllAvail: "查看全部 {0} 種可捕獲 →",
+    viewAvailTab: "前往「當前」分頁查看 →",
+    availRightNow: "目前可捕獲",
+    available: "可捕獲",
+    uncaught: "未捕獲",
+    availableNow: "目前可捕獲",
+    fullCollection: "完整圖鑑",
+    searchPlaceholder: "搜尋...",
+    filterAll: "全部",
+    noCreaturesFound: "找不到任何生物",
+    settingsTitle: "⚙️ 設定",
+    timeMode: "時間模式",
+    specificTime: "自訂時間",
+    hemisphere: "半球",
+    northern: "🌍 北半球",
+    southern: "🌏 南半球",
+    dataManagement: "資料管理",
+    exportBtn: "匯出",
+    importBtn: "匯入",
+    resetAll: "重置全部",
+    resetConfirmMsg: "確定要重置所有捕獲紀錄嗎？此操作無法復原。",
+    cancel: "取消",
+    confirm: "確認",
+    importFailedMsg: "匯入資料失敗，請確認檔案格式是否正確。",
+    allDay: "全天",
+    language: "語言",
+    bugs: "昆蟲",
+    fish: "魚類",
+    seaCreatures: "海洋生物",
+    monthLabels: ["1","2","3","4","5","6","7","8","9","10","11","12"],
+    monthNames: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]
+  }
+};
+
+function t(key) {
+  const lang = state.settings.language || "en";
+  return (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || TRANSLATIONS.en[key] || key;
+}
+function getCatName(cat) {
+  if (cat === "bugs") return t("bugs");
+  if (cat === "fish") return t("fish");
+  if (cat === "sea") return t("seaCreatures");
+  return cat;
+}
+function getMonthLabel(idx) {
+  const lang = state.settings.language || "en";
+  const tr = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  return tr.monthLabels[idx] || TRANSLATIONS.en.monthLabels[idx];
+}
+function getMonthName(idx) {
+  const lang = state.settings.language || "en";
+  const tr = TRANSLATIONS[lang] || TRANSLATIONS.en;
+  return tr.monthNames[idx] || TRANSLATIONS.en.monthNames[idx];
+}
+
+/* ================================================================
+   UTILITY FUNCTIONS
+   ================================================================ */
+function parseMonths(m){
+  if(m==="1-12")return [1,2,3,4,5,6,7,8,9,10,11,12];
+  const r=[];
+  m.split(",").forEach(p=>{
+    if(p.includes("-")){
+      const[s,e]=p.split("-").map(Number);
+      if(s<=e){for(let i=s;i<=e;i++)r.push(i);}
+      else{for(let i=s;i<=12;i++)r.push(i);for(let i=1;i<=e;i++)r.push(i);}
+    }else{r.push(Number(p));}
+  });
+  return r;
+}
+function parseHours(h){
+  if(h==="0-24")return[[0,24]];
+  return h.split(",").map(r=>{const[s,e]=r.split("-").map(Number);return[s,e];});
+}
+function isInHourRange(hour,ranges){
+  return ranges.some(([s,e])=>{
+    if(s===0&&e===24)return true;
+    if(s<e)return hour>=s&&hour<e;
+    return hour>=s||hour<e;
+  });
+}
+function shiftMonth(m){return((m+5)%12)+1;}
+function getCreatureMonths(creature,hemi){
+  const nm=parseMonths(creature.m);
+  return hemi==="south"?nm.map(shiftMonth):nm;
+}
+function isAvailableNow(creature,month,hour,hemi){
+  const months=getCreatureMonths(creature,hemi);
+  if(!months.includes(month))return false;
+  const ranges=parseHours(creature.h);
+  return isInHourRange(hour,ranges);
+}
+function formatHour(h){
+  if(h===0||h===24)return"12 AM";
+  if(h===12)return"12 PM";
+  return h<12?h+" AM":(h-12)+" PM";
+}
+function formatHours(h){
+  if(h==="0-24")return t("allDay");
+  return h.split(",").map(r=>{const[s,e]=r.split("-").map(Number);return formatHour(s)+" – "+formatHour(e);}).join(", ");
+}
+function formatPrice(p){return p.toLocaleString();}
+
+/* ================================================================
+   STORAGE (IndexedDB with in-memory fallback)
+   ================================================================ */
+let db=null;
+const memStore={caught:{},settings:{}};
+const DB_NAME="acnh_critter_tracker";
+const DB_VER=1;
+
+function openDB(){
+  return new Promise((res,rej)=>{
+    try{
+      const req=indexedDB.open(DB_NAME,DB_VER);
+      req.onerror=()=>rej(req.error);
+      req.onsuccess=()=>{db=req.result;res(db);};
+      req.onupgradeneeded=(e)=>{
+        const d=e.target.result;
+        if(!d.objectStoreNames.contains("caught"))d.createObjectStore("caught");
+        if(!d.objectStoreNames.contains("settings"))d.createObjectStore("settings");
+      };
+    }catch(err){rej(err);}
+  });
+}
+function dbGet(store,key){
+  if(!db){return Promise.resolve(store==="caught"?memStore.caught[key]:memStore.settings[key]);}
+  return new Promise((res)=>{
+    try{
+      const tx=db.transaction(store,"readonly");
+      const s=tx.objectStore(store);
+      const r=s.get(key);
+      r.onsuccess=()=>res(r.result);
+      r.onerror=()=>res(undefined);
+    }catch(e){res(undefined);}
+  });
+}
+function dbPut(store,key,val){
+  if(!db){
+    if(store==="caught")memStore.caught[key]=val;
+    else memStore.settings[key]=val;
+    return Promise.resolve();
+  }
+  return new Promise((res)=>{
+    try{
+      const tx=db.transaction(store,"readwrite");
+      const s=tx.objectStore(store);
+      s.put(val,key);
+      tx.oncomplete=()=>res();
+      tx.onerror=()=>res();
+    }catch(e){res();}
+  });
+}
+function dbGetAll(store){
+  if(!db){return Promise.resolve(store==="caught"?{...memStore.caught}:{...memStore.settings});}
+  return new Promise((res)=>{
+    try{
+      const tx=db.transaction(store,"readonly");
+      const s=tx.objectStore(store);
+      const r=s.openCursor();
+      const result={};
+      r.onsuccess=(e)=>{
+        const c=e.target.result;
+        if(c){result[c.key]=c.value;c.continue();}
+        else res(result);
+      };
+      r.onerror=()=>res({});
+    }catch(e){res({});}
+  });
+}
+function dbClear(store){
+  if(!db){
+    if(store==="caught")Object.keys(memStore.caught).forEach(k=>delete memStore.caught[k]);
+    else Object.keys(memStore.settings).forEach(k=>delete memStore.settings[k]);
+    return Promise.resolve();
+  }
+  return new Promise((res)=>{
+    try{
+      const tx=db.transaction(store,"readwrite");
+      tx.objectStore(store).clear();
+      tx.oncomplete=()=>res();
+      tx.onerror=()=>res();
+    }catch(e){res();}
+  });
+}
+
+/* ================================================================
+   APP STATE
+   ================================================================ */
+const state={
+  tab:"dashboard",
+  settings:{timeMode:"current",specificDate:"",specificTime:"",hemisphere:"north",language:"en"},
+  caught:new Set(),
+  availCat:null,
+  collCat:null,
+  searchAvail:"",
+  searchColl:"",
+  filterAvail:"all",
+  filterColl:"all",
+  dashFilter:"all"
+};
+
+/* Cookie helpers for persistent settings */
+function setCookie(name,val,days){
+  const d=new Date();d.setTime(d.getTime()+(days*86400000));
+  document.cookie=name+"="+encodeURIComponent(val)+";expires="+d.toUTCString()+";path=/;SameSite=Lax";
+}
+function getCookie(name){
+  const prefix=name+"=";
+  const parts=document.cookie.split(";");
+  for(let i=0;i<parts.length;i++){
+    let c=parts[i].trim();
+    if(c.indexOf(prefix)===0)return decodeURIComponent(c.substring(prefix.length));
+  }
+  return null;
+}
+
+/* Compact bitmap encoding for caught data in cookies */
+function encodeCaughtData(){
+  const cats=[{key:"bugs",data:BUGS},{key:"fish",data:FISH},{key:"sea",data:SEA}];
+  const parts=[];
+  cats.forEach(function(o){
+    let bits="";
+    for(let i=0;i<o.data.length;i++){bits+=state.caught.has(cId(o.key,i))?"1":"0";}
+    while(bits.length%4!==0)bits+="0";
+    let hex="";
+    for(let i=0;i<bits.length;i+=4){hex+=parseInt(bits.substr(i,4),2).toString(16);}
+    parts.push(hex);
+  });
+  return parts.join(".");
+}
+function decodeCaughtData(encoded){
+  const set=new Set();
+  const parts=encoded.split(".");
+  const cats=[{key:"bugs",data:BUGS},{key:"fish",data:FISH},{key:"sea",data:SEA}];
+  parts.forEach(function(hex,ci){
+    if(ci>=cats.length)return;
+    const o=cats[ci];
+    let bits="";
+    for(let i=0;i<hex.length;i++){bits+=parseInt(hex[i],16).toString(2).padStart(4,"0");}
+    for(let i=0;i<o.data.length;i++){if(bits[i]==="1")set.add(cId(o.key,i));}
+  });
+  return set;
+}
+function saveCaughtToCookie(){
+  setCookie("ct_caught",encodeCaughtData(),365);
+}
+function showSaveToast(msg){
+  const el=document.getElementById("saveToast");
+  el.textContent=msg;
+  el.classList.add("show");
+  clearTimeout(el._timeout);
+  el._timeout=setTimeout(()=>el.classList.remove("show"),1800);
+}
+
+function getEffectiveTime(){
+  if(state.settings.timeMode==="specific"&&state.settings.specificDate&&state.settings.specificTime){
+    const d=new Date(state.settings.specificDate+"T"+state.settings.specificTime);
+    if(!isNaN(d.getTime()))return d;
+  }
+  return new Date();
+}
+function cId(cat,idx){return cat+"_"+idx;}
+
+/* ================================================================
+   RENDERING
+   ================================================================ */
+function switchTab(tab){
+  state.tab=tab;
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById("panel"+capitalize(tab)).classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach(b=>{
+    b.classList.toggle("active",b.dataset.tab===tab);
+  });
+  renderCurrentPanel();
+  document.getElementById("mainContent").scrollTop=0;
+}
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+
+function renderCurrentPanel(){
+  const t=state.tab;
+  if(t==="dashboard")renderDashboard();
+  else if(t==="available")renderAvailable();
+  else if(t==="collection")renderCollection();
+  else if(t==="settings")renderSettings();
+}
+
+function updateTimeDisplay(){
+  const d=getEffectiveTime();
+  const label=state.settings.timeMode==="specific"?t("customTime"):t("currentTime");
+  document.getElementById("timeLabel").textContent=label;
+  const lang=state.settings.language||"en";
+  const locale=lang==="zh-TW"?"zh-TW":"en-US";
+  const opts={hour:"numeric",minute:"2-digit",hour12:true};
+  const dateStr=getMonthName(d.getMonth())+" "+d.getDate();
+  document.getElementById("timeValue").textContent=dateStr+", "+d.toLocaleTimeString(locale,opts);
+}
+function updateUILabels(){
+  document.getElementById("appTitle").textContent=t("appTitle");
+  const navKeys={dashboard:"navHome",available:"navNow",collection:"navAll",settings:"navSettings"};
+  document.querySelectorAll(".nav-btn").forEach(function(btn){
+    const key=navKeys[btn.dataset.tab];
+    if(key){const span=btn.querySelector(".nav-label");if(span)span.textContent=t(key);}
+  });
+}
+
+/* ----- DASHBOARD ----- */
+function renderDashboard(){
+  const now=getEffectiveTime();
+  const month=now.getMonth()+1;
+  const hour=now.getHours();
+  const hemi=state.settings.hemisphere;
+  let html="";
+
+  // Overall
+  const totalAll=BUGS.length+FISH.length+SEA.length;
+  let caughtAll=0;
+  ["bugs","fish","sea"].forEach(cat=>{
+    CAT_DATA[cat].forEach((_,i)=>{if(state.caught.has(cId(cat,i)))caughtAll++;});
+  });
+  const pctAll=totalAll?Math.round(caughtAll/totalAll*100):0;
+
+  html+=`<div class="overall-progress">
+    <div class="overall-label">${t("overallProgress")}</div>
+    <div class="overall-nums">${caughtAll}<small> / ${totalAll} (${pctAll}%)</small></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pctAll}%;background:var(--accent)"></div></div>
+  </div>`;
+
+  // Category cards
+  html+=`<div class="cat-cards">`;
+  ["bugs","fish","sea"].forEach(cat=>{
+    const data=CAT_DATA[cat];
+    const total=data.length;
+    let caught=0;
+    data.forEach((_,i)=>{if(state.caught.has(cId(cat,i)))caught++;});
+    const pct=total?Math.round(caught/total*100):0;
+    html+=`<div class="cat-card">
+      <div class="cat-icon ${cat}">${CAT_EMOJI[cat]}</div>
+      <div class="cat-info">
+        <div class="cat-name">${getCatName(cat)}</div>
+        <div class="cat-count">${caught} / ${total} ${t("caught")}</div>
+        <div class="cat-bar"><div class="cat-fill fill-${cat}" style="width:${pct}%"></div></div>
+      </div>
+      <div class="cat-pct" style="color:var(--${cat})">${pct}%</div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // Available now & uncaught
+  html+=`<div class="dash-divider"></div>`;
+  html+=`<div class="section-title">${t("availNowUncaught")}</div>`;
+
+  // Gather all available uncaught by category
+  const availByCat={all:[],bugs:[],fish:[],sea:[]};
+  ["bugs","fish","sea"].forEach(cat=>{
+    CAT_DATA[cat].forEach((c,i)=>{
+      const id=cId(cat,i);
+      if(!state.caught.has(id)&&isAvailableNow(c,month,hour,hemi)){
+        const item={...c,id,cat,idx:i};
+        availByCat.all.push(item);
+        availByCat[cat].push(item);
+      }
+    });
+  });
+
+  // Filter chips
+  const df=state.dashFilter;
+  const chipData=[
+    {key:"all",label:t("filterAll"),count:availByCat.all.length},
+    {key:"bugs",label:CAT_EMOJI.bugs+" "+getCatName("bugs"),count:availByCat.bugs.length},
+    {key:"fish",label:CAT_EMOJI.fish+" "+getCatName("fish"),count:availByCat.fish.length},
+    {key:"sea",label:CAT_EMOJI.sea+" "+getCatName("sea"),count:availByCat.sea.length}
+  ];
+  html+=`<div class="dash-filters">`;
+  chipData.forEach(ch=>{
+    html+=`<button class="dash-chip${df===ch.key?" active":""}" onclick="setDashFilter('${ch.key}')" type="button">${ch.label}<span class="chip-count">${ch.count}</span></button>`;
+  });
+  html+=`</div>`;
+
+  const availUncaught=availByCat[df]||availByCat.all;
+
+  if(availUncaught.length===0){
+    html+=`<div class="empty-state"><i class="fa-solid fa-circle-check"></i>${t("allCaughtMsg")}</div>`;
+  }else{
+    html+=`<div class="avail-preview">`;
+    const show=availUncaught.slice(0,8);
+    show.forEach(c=>{
+      html+=`<div class="avail-item">
+        <div class="avail-emoji">${CAT_EMOJI[c.cat]}</div>
+        <div class="avail-name">${cn(c)}</div>
+        <div class="avail-price"><i class="fa-solid fa-coins"></i> ${formatPrice(c.p)}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+    if(availUncaught.length>8){
+      html+=`<button class="see-all-btn" onclick="switchTab('available')">${t("seeAllAvail").replace("{0}",availUncaught.length)}</button>`;
+    }else if(availUncaught.length>0){
+      html+=`<button class="see-all-btn" onclick="switchTab('available')">${t("viewAvailTab")}</button>`;
+    }
+  }
+  document.getElementById("panelDashboard").innerHTML=html;
+}
+
+/* ----- AVAILABLE NOW ----- */
+function renderAvailable(){
+  const now=getEffectiveTime();
+  const month=now.getMonth()+1;
+  const hour=now.getHours();
+  const hemi=state.settings.hemisphere;
+
+  if(!state.availCat){
+    let html=`<div class="section-title">${t("availRightNow")}</div><div class="cat-buttons">`;
+    ["bugs","fish","sea"].forEach(cat=>{
+      const data=CAT_DATA[cat];
+      let avail=0;let uncaught=0;
+      data.forEach((c,i)=>{
+        if(isAvailableNow(c,month,hour,hemi)){avail++;if(!state.caught.has(cId(cat,i)))uncaught++;}
+      });
+      html+=`<button class="cat-btn" onclick="selectAvailCat('${cat}')" type="button">
+        <div class="cat-btn-icon ${cat}">${CAT_EMOJI[cat]}</div>
+        <div class="cat-btn-info">
+          <div class="cat-btn-name">${getCatName(cat)}</div>
+          <div class="cat-btn-count">${avail} ${t("available")} · ${uncaught} ${t("uncaught")}</div>
+        </div>
+        <div class="cat-btn-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </button>`;
+    });
+    html+=`</div>`;
+    document.getElementById("panelAvailable").innerHTML=html;
+    return;
+  }
+
+  const cat=state.availCat;
+  const data=CAT_DATA[cat];
+  let creatures=[];
+  data.forEach((c,i)=>{
+    if(isAvailableNow(c,month,hour,hemi))creatures.push({...c,id:cId(cat,i),idx:i});
+  });
+
+  // Apply filter
+  if(state.filterAvail==="caught")creatures=creatures.filter(c=>state.caught.has(c.id));
+  if(state.filterAvail==="uncaught")creatures=creatures.filter(c=>!state.caught.has(c.id));
+  // Apply search
+  if(state.searchAvail){const q=state.searchAvail.toLowerCase();creatures=creatures.filter(c=>c.n.toLowerCase().includes(q)||cn(c).toLowerCase().includes(q));}
+
+  let html=`<div class="back-bar">
+    <button class="back-btn" onclick="state.availCat=null;renderAvailable();" type="button"><i class="fa-solid fa-arrow-left"></i></button>
+    <h3>${CAT_EMOJI[cat]} ${getCatName(cat)} – ${t("availableNow")}</h3>
+    <span class="creature-count-badge">${creatures.length}</span>
+  </div>`;
+  html+=renderSearchFilter("avail");
+  html+=renderCreatureList(creatures,cat,false);
+  document.getElementById("panelAvailable").innerHTML=html;
+  bindSearchFilter("avail");
+}
+
+/* ----- COLLECTION ----- */
+function renderCollection(){
+  const hemi=state.settings.hemisphere;
+  const now=getEffectiveTime();
+  const currentMonth=now.getMonth()+1;
+
+  if(!state.collCat){
+    let html=`<div class="section-title">${t("fullCollection")}</div><div class="cat-buttons">`;
+    ["bugs","fish","sea"].forEach(cat=>{
+      const data=CAT_DATA[cat];
+      let caught=0;
+      data.forEach((_,i)=>{if(state.caught.has(cId(cat,i)))caught++;});
+      html+=`<button class="cat-btn" onclick="selectCollCat('${cat}')" type="button">
+        <div class="cat-btn-icon ${cat}">${CAT_EMOJI[cat]}</div>
+        <div class="cat-btn-info">
+          <div class="cat-btn-name">${getCatName(cat)}</div>
+          <div class="cat-btn-count">${caught} / ${data.length} ${t("caught")}</div>
+        </div>
+        <div class="cat-btn-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      </button>`;
+    });
+    html+=`</div>`;
+    document.getElementById("panelCollection").innerHTML=html;
+    return;
+  }
+
+  const cat=state.collCat;
+  const data=CAT_DATA[cat];
+  let creatures=data.map((c,i)=>({...c,id:cId(cat,i),idx:i}));
+
+  if(state.filterColl==="caught")creatures=creatures.filter(c=>state.caught.has(c.id));
+  if(state.filterColl==="uncaught")creatures=creatures.filter(c=>!state.caught.has(c.id));
+  if(state.searchColl){const q=state.searchColl.toLowerCase();creatures=creatures.filter(c=>c.n.toLowerCase().includes(q)||cn(c).toLowerCase().includes(q));}
+
+  let html=`<div class="back-bar">
+    <button class="back-btn" onclick="state.collCat=null;renderCollection();" type="button"><i class="fa-solid fa-arrow-left"></i></button>
+    <h3>${CAT_EMOJI[cat]} ${getCatName(cat)}</h3>
+    <span class="creature-count-badge">${creatures.length}</span>
+  </div>`;
+  html+=renderSearchFilter("coll");
+  html+=renderCreatureList(creatures,cat,true);
+  document.getElementById("panelCollection").innerHTML=html;
+  bindSearchFilter("coll");
+}
+
+function renderSearchFilter(prefix){
+  const searchVal=prefix==="avail"?state.searchAvail:state.searchColl;
+  const filterVal=prefix==="avail"?state.filterAvail:state.filterColl;
+  const filters=[["all",t("filterAll")],["uncaught","✗"],["caught","✓"]];
+  let html=`<div class="search-filter">
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="search_${prefix}" placeholder="${t("searchPlaceholder")}" value="${escAttr(searchVal)}">
+    </div>`;
+  filters.forEach(([v,label])=>{
+    html+=`<button class="filter-btn${filterVal===v?" active":""}" onclick="setFilter('${prefix}','${v}')" type="button">${label}</button>`;
+  });
+  html+=`</div>`;
+  return html;
+}
+function bindSearchFilter(prefix){
+  const input=document.getElementById("search_"+prefix);
+  if(!input)return;
+  input.addEventListener("input",(e)=>{
+    if(prefix==="avail"){state.searchAvail=e.target.value;renderAvailable();}
+    else{state.searchColl=e.target.value;renderCollection();}
+    // Restore focus
+    const el=document.getElementById("search_"+prefix);
+    if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}
+  });
+}
+function setFilter(prefix,val){
+  if(prefix==="avail"){state.filterAvail=val;renderAvailable();}
+  else{state.filterColl=val;renderCollection();}
+}
+function escAttr(s){return s.replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+
+function renderCreatureList(creatures,cat,showMonths){
+  if(creatures.length===0){
+    return`<div class="empty-state"><i class="fa-solid fa-ghost"></i>${t("noCreaturesFound")}</div>`;
+  }
+  const now=getEffectiveTime();
+  const currentMonth=now.getMonth()+1;
+  const hemi=state.settings.hemisphere;
+  let html=`<div class="creature-list">`;
+  creatures.forEach(c=>{
+    const caught=state.caught.has(c.id);
+    const months=getCreatureMonths(c,hemi);
+    html+=`<div class="creature-item${caught?" caught-item":""}">
+      <div class="creature-check${caught?" checked":""}" onclick="toggleCaught('${c.id}')">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <div class="creature-body">
+        <div class="creature-name">${cn(c)}</div>
+        <div class="creature-details">
+          <span><i class="fa-solid fa-coins"></i> ${formatPrice(c.p)}</span>
+          <span><i class="fa-solid fa-clock"></i> ${formatHours(c.h)}</span>
+          <span><i class="fa-solid fa-location-dot"></i> ${c.l}</span>
+        </div>`;
+    if(showMonths){
+      html+=`<div class="month-dots">`;
+      for(let m=1;m<=12;m++){
+        const active=months.includes(m);
+        const current=m===currentMonth;
+        html+=`<span class="month-dot${active?" active":""}${current?" current":""}">${getMonthLabel(m-1)}</span>`;
+      }
+      html+=`</div>`;
+    }
+    html+=`</div></div>`;
+  });
+  html+=`</div>`;
+  return html;
+}
+
+/* ----- SETTINGS ----- */
+function renderSettings(){
+  const s=state.settings;
+  const specHidden=s.timeMode!=="specific"?" hidden":"";
+  let html=`<div class="section-title">${t("settingsTitle")}</div>`;
+
+  // Language
+  html+=`<div class="settings-section">
+    <div class="settings-label">${t("language")}</div>
+    <div class="toggle-group">
+      <button class="toggle-opt${s.language==="en"?" active":""}" onclick="setLanguage('en')" type="button">English</button>
+      <button class="toggle-opt${s.language==="zh-TW"?" active":""}" onclick="setLanguage('zh-TW')" type="button">繁體中文</button>
+    </div>
+  </div>`;
+
+  // Time mode
+  html+=`<div class="settings-section">
+    <div class="settings-label">${t("timeMode")}</div>
+    <div class="toggle-group">
+      <button class="toggle-opt${s.timeMode==="current"?" active":""}" onclick="setTimeMode('current')" type="button">${t("currentTime")}</button>
+      <button class="toggle-opt${s.timeMode==="specific"?" active":""}" onclick="setTimeMode('specific')" type="button">${t("specificTime")}</button>
+    </div>
+    <div class="datetime-row${specHidden}" id="datetimeRow">
+      <input type="date" id="settingsDate" value="${s.specificDate}" onchange="setSpecificDate(this.value)">
+      <input type="time" id="settingsTime" value="${s.specificTime}" onchange="setSpecificTime(this.value)">
+    </div>
+  </div>`;
+
+  // Hemisphere
+  html+=`<div class="settings-section">
+    <div class="settings-label">${t("hemisphere")}</div>
+    <div class="toggle-group">
+      <button class="toggle-opt${s.hemisphere==="north"?" active":""}" onclick="setHemisphere('north')" type="button">${t("northern")}</button>
+      <button class="toggle-opt${s.hemisphere==="south"?" active":""}" onclick="setHemisphere('south')" type="button">${t("southern")}</button>
+    </div>
+  </div>`;
+
+  // Data management
+  html+=`<div class="settings-section">
+    <div class="settings-label">${t("dataManagement")}</div>
+    <div class="data-actions">
+      <button class="data-btn" onclick="exportData()" type="button"><i class="fa-solid fa-download"></i> ${t("exportBtn")}</button>
+      <button class="data-btn" onclick="triggerImport()" type="button"><i class="fa-solid fa-upload"></i> ${t("importBtn")}</button>
+      <button class="data-btn danger" onclick="confirmReset()" type="button"><i class="fa-solid fa-trash"></i> ${t("resetAll")}</button>
+    </div>
+    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)">
+  </div>`;
+
+  document.getElementById("panelSettings").innerHTML=html;
+}
+
+/* ================================================================
+   EVENT HANDLERS
+   ================================================================ */
+function setDashFilter(val){state.dashFilter=val;renderDashboard();}
+function selectAvailCat(cat){state.availCat=cat;state.searchAvail="";state.filterAvail="all";renderAvailable();}
+function selectCollCat(cat){state.collCat=cat;state.searchColl="";state.filterColl="all";renderCollection();}
+
+async function toggleCaught(id){
+  if(state.caught.has(id)){
+    state.caught.delete(id);
+    await dbPut("caught",id,false);
+  }else{
+    state.caught.add(id);
+    await dbPut("caught",id,true);
+  }
+  saveCaughtToCookie();
+  renderCurrentPanel();
+}
+
+async function setTimeMode(mode){
+  state.settings.timeMode=mode;
+  await dbPut("settings","timeMode",mode);
+  updateTimeDisplay();
+  renderSettings();
+  if(state.tab==="dashboard")renderDashboard();
+}
+async function setSpecificDate(val){
+  state.settings.specificDate=val;
+  await dbPut("settings","specificDate",val);
+  updateTimeDisplay();
+}
+async function setSpecificTime(val){
+  state.settings.specificTime=val;
+  await dbPut("settings","specificTime",val);
+  updateTimeDisplay();
+}
+async function setHemisphere(h){
+  state.settings.hemisphere=h;
+  await dbPut("settings","hemisphere",h);
+  setCookie("ct_hemisphere",h,365);
+  renderSettings();
+  if(state.tab==="dashboard")renderDashboard();
+}
+async function setLanguage(lang){
+  state.settings.language=lang;
+  await dbPut("settings","language",lang);
+  setCookie("ct_language",lang,365);
+  updateUILabels();
+  updateTimeDisplay();
+  renderCurrentPanel();
+  showSaveToast(lang==="zh-TW"?"✓ 語言偏好已儲存":"✓ Language preference saved");
+}
+
+function showModal(message,onConfirm){
+  const overlay=document.createElement("div");
+  overlay.className="modal-overlay";
+  overlay.innerHTML=`<div class="modal-box">
+    <p>${message}</p>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" type="button">${t("cancel")}</button>
+      <button class="modal-btn confirm" type="button">${t("confirm")}</button>
+    </div>
+  </div>`;
+  overlay.querySelector(".cancel").addEventListener("click",()=>overlay.remove());
+  overlay.querySelector(".confirm").addEventListener("click",()=>{overlay.remove();onConfirm();});
+  overlay.addEventListener("click",(e)=>{if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
+}
+
+function confirmReset(){
+  showModal(t("resetConfirmMsg"),async()=>{
+    state.caught.clear();
+    await dbClear("caught");
+    saveCaughtToCookie();
+    renderCurrentPanel();
+  });
+}
+
+function exportData(){
+  const data={
+    caught:[...state.caught],
+    settings:state.settings,
+    exportDate:new Date().toISOString()
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="critter-tracker-backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function triggerImport(){document.getElementById("importFile").click();}
+async function importData(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  try{
+    const text=await file.text();
+    const data=JSON.parse(text);
+    if(data.caught&&Array.isArray(data.caught)){
+      state.caught=new Set(data.caught);
+      await dbClear("caught");
+      for(const id of data.caught){await dbPut("caught",id,true);}
+    }
+    if(data.settings){
+      Object.assign(state.settings,data.settings);
+      for(const[k,v]of Object.entries(data.settings)){await dbPut("settings",k,v);}
+    }
+    saveCaughtToCookie();
+    updateTimeDisplay();
+    renderCurrentPanel();
+  }catch(e){
+    showModal(t("importFailedMsg"),()=>{});
+  }
+  event.target.value="";
+}
+
+/* ================================================================
+   NAVIGATION
+   ================================================================ */
+document.querySelectorAll(".nav-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>switchTab(btn.dataset.tab));
+});
+
+/* ================================================================
+   DARK MODE
+   ================================================================ */
+if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches){
+  document.documentElement.classList.add("dark");
+}
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",event=>{
+  if(event.matches)document.documentElement.classList.add("dark");
+  else document.documentElement.classList.remove("dark");
+});
+
+/* ================================================================
+   INIT
+   ================================================================ */
+async function init(){
+  try{await openDB();}catch(e){
+    console.log("IndexedDB not available, using in-memory storage");
+  }
+  // Load settings from IndexedDB first, then cookie fallback
+  const settings=await dbGetAll("settings");
+  if(settings.timeMode)state.settings.timeMode=settings.timeMode;
+  if(settings.specificDate)state.settings.specificDate=settings.specificDate;
+  if(settings.specificTime)state.settings.specificTime=settings.specificTime;
+  if(settings.hemisphere)state.settings.hemisphere=settings.hemisphere;
+  else{const ch=getCookie("ct_hemisphere");if(ch)state.settings.hemisphere=ch;}
+  if(settings.language)state.settings.language=settings.language;
+  else{const cl=getCookie("ct_language");if(cl)state.settings.language=cl;}
+
+  // Load caught data from IndexedDB first, then cookie fallback
+  const caught=await dbGetAll("caught");
+  const caughtKeys=Object.entries(caught).filter(function(e){return e[1];}).map(function(e){return e[0];});
+  if(caughtKeys.length>0){
+    caughtKeys.forEach(function(k){state.caught.add(k);});
+  }else{
+    const cookieCaught=getCookie("ct_caught");
+    if(cookieCaught){
+      state.caught=decodeCaughtData(cookieCaught);
+      // Sync back to IndexedDB if available
+      for(const id of state.caught){await dbPut("caught",id,true);}
+    }
+  }
+
+  updateUILabels();
+  updateTimeDisplay();
+  renderDashboard();
+
+  // Update time every 30 seconds if using current time
+  setInterval(()=>{
+    updateTimeDisplay();
+    if(state.settings.timeMode==="current"&&state.tab==="dashboard"){renderDashboard();}
+  },30000);
+}
+init();
+</script>
+</body>
+</html>
+
+
+
+
+
