@@ -480,8 +480,15 @@ h1,h2,h3,h4 { font-family: 'Fredoka', sans-serif; }
   gap: 10px;
   margin-top: 14px;
 }
-.datetime-row input {
+.datetime-field {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.datetime-field input {
+  width: 100%;
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -491,7 +498,11 @@ h1,h2,h3,h4 { font-family: 'Fredoka', sans-serif; }
   font-size: 16px;
   outline: none;
 }
-.datetime-row input:focus { border-color: var(--primary); }
+
+.datetime-field input:focus {
+  border-color: var(--primary);
+}
+
 .hidden { display: none !important; }
 .creature-count-badge {
   font-size: 12px;
