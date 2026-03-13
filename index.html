@@ -480,9 +480,26 @@ h1,h2,h3,h4 { font-family: 'Fredoka', sans-serif; }
   gap: 10px;
   margin-top: 14px;
 }
-.datetime-row input {
+
+/* Wrapper with icon */
+.icon-field {
+  position: relative;
   flex: 1;
-  padding: 12px;
+}
+
+.icon-field i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--text-sec);
+  pointer-events: none;
+}
+
+.icon-field input {
+  width: 100%;
+  padding: 10px 12px 10px 36px; /* left padding for icon */
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface-alt);
@@ -491,7 +508,10 @@ h1,h2,h3,h4 { font-family: 'Fredoka', sans-serif; }
   font-size: 16px;
   outline: none;
 }
-.datetime-row input:focus { border-color: var(--primary); }
+
+.icon-field input:focus {
+  border-color: var(--primary);
+}
 .hidden { display: none !important; }
 .creature-count-badge {
   font-size: 12px;
@@ -1783,10 +1803,27 @@ function renderSettings(){
       <button class="toggle-opt${s.timeMode==="current"?" active":""}" onclick="setTimeMode('current')" type="button">${t("currentTime")}</button>
       <button class="toggle-opt${s.timeMode==="specific"?" active":""}" onclick="setTimeMode('specific')" type="button">${t("specificTime")}</button>
     </div>
-    <div class="datetime-row${specHidden}" id="datetimeRow">
-      <input type="date" id="settingsDate" value="${s.specificDate}" onchange="setSpecificDate(this.value)">
-      <input type="time" id="settingsTime" value="${s.specificTime}" onchange="setSpecificTime(this.value)">
-    </div>
+<div class="datetime-row${specHidden}" id="datetimeRow">
+
+  <div class="icon-field">
+    <i class="fa-solid fa-calendar"></i>
+    <input 
+      type="date" 
+      id="settingsDate" 
+      value="${s.specificDate}" 
+      onchange="setSpecificDate(this.value)">
+  </div>
+
+  <div class="icon-field">
+    <i class="fa-solid fa-clock"></i>
+    <input 
+      type="time" 
+      id="settingsTime" 
+      value="${s.specificTime}" 
+      onchange="setSpecificTime(this.value)">
+  </div>
+
+</div>
   </div>`;
 
   // Hemisphere
